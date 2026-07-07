@@ -173,5 +173,7 @@ export default function renderAiAnalysis(responseData, fullText = null) {
     </div>
   `;
 
-  document.body.appendChild(container);
+  return container
+
+  //document.body.appendChild(container);
 }
