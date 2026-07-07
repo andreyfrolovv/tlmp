@@ -1,9 +1,6 @@
 import tmplToolsTextCompare from './tmplToolsTextCompare.js';
 
-export async function handleResponseByPath(param = {
-    response: {},
-    path: null
-}) {
+export async function handleResponseByPath(response = {}, path = null) {
     if (!path || typeof path !== 'string' || path.trim() === '') {
         console.error('Ошибка: Передан пустой или некорректный путь (path).');
         return null;
