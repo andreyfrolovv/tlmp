@@ -1,10 +1,26 @@
-export default function renderAiAnalysis(responseData, fullText = null) {
+export default function renderAiAnalysis(responseWrapper, fullText = null) {
+  // Достаем данные с учетом вложенности объекта response
+  const responseData = responseWrapper.response || responseWrapper;
   const { data } = responseData;
-  const aiPercent = Math.round(data.ai_probability * 100);
-  const thresholdValue = data.applied_threshold; // Выводим как есть, без перевода в проценты
-  const isAiText = data.is_ai ? `${tr('Yes')}` : `${tr('No')}`; // Данные из JSON не оборачиваем в rt()
 
-  // Функция для определения цвета на основе порога строгости
+  if (!data) {
+    console.error("renderAiAnalysis: Данные 'data' не найдены в объекте");
+    return "";
+  }
+
+  const aiPercent = Math.round(data.ai_probability * 100);
+  const thresholdValue = data.applied_threshold;
+
+  // "Да" и "Нет" обернуты в функцию tr()
+  const isAiText = data.is_ai ? tr("Yes") : tr("No");
+
+  // Вспомогательная функция для очистки текста от спецсимволов (\r, \n, \t)
+  function cleanSpecialChars(str) {
+    if (!str) return "";
+    return str.replace(/[\r\n\t]/g, "");
+  }
+
+  // Логика светофора: возвращает HEX-цвет для круга и стили ФОНА для текста
   function getColorByThreshold(probability, threshold) {
     if (probability > threshold) {
       return {
@@ -18,33 +34,42 @@ export default function renderAiAnalysis(responseData, fullText = null) {
       };
     } else {
       return {
-        hex: "#198754", // Зеленый (для круга)
-        bgStyle: "" // Зеленую зону никак не выделяем фоном
+        hex: "#198754", // Зеленый
+        bgStyle: "" // Зеленую зону НИКАК не выделяем фоном
       };
     }
   }
 
-  // Цвет для главного круга (на основе общей вероятности)
-  const mainColor = getColorByThreshold(data.ai_probability, data.applied_threshold).hex;
+  // Главный статус для круга и бэджа
+  const mainStatus = getColorByThreshold(data.ai_probability, data.applied_threshold);
+  const mainColor = mainStatus.hex;
 
-  // Настройки SVG круга
+  // Контур блока с кодом всегда нейтральный прозрачно-черный
+  const blockBorderColor = "#e9ecef";
+  const blockShadow = "rgba(0, 0, 0, 0.08) 0px 4px 12px";
+
   const radius = 45;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (aiPercent / 100) * circumference;
 
   let textHtml = "";
 
-  if (fullText) {
-    // ВАРИАНТ 1: Если передан fullText
+  // Очищаем полный текст от спецсимволов
+  const cleanedFullText = cleanSpecialChars(fullText);
+
+  if (cleanedFullText) {
     let textSegments = [];
-    for (let i = 0; i < fullText.length; i++) {
-      textSegments.push({ char: fullText[i], maxProb: -1, hasChunk: false });
+    for (let i = 0; i < cleanedFullText.length; i++) {
+      textSegments.push({ char: cleanedFullText[i], maxProb: -1, hasChunk: false });
     }
 
     data.chunks.forEach(chunk => {
-      let startIndex = fullText.indexOf(chunk.text_snippet);
+      const cleanSnippet = cleanSpecialChars(chunk.text_snippet).trim();
+      if (!cleanSnippet) return;
+
+      let startIndex = cleanedFullText.indexOf(cleanSnippet);
       while (startIndex !== -1) {
-        for (let i = 0; i < chunk.text_snippet.length; i++) {
+        for (let i = 0; i < cleanSnippet.length; i++) {
           const targetIndex = startIndex + i;
           if (targetIndex < textSegments.length) {
             textSegments[targetIndex].hasChunk = true;
@@ -53,7 +78,7 @@ export default function renderAiAnalysis(responseData, fullText = null) {
             }
           }
         }
-        startIndex = fullText.indexOf(chunk.text_snippet, startIndex + 1);
+        startIndex = cleanedFullText.indexOf(cleanSnippet, startIndex + 1);
       }
     });
 
@@ -61,10 +86,19 @@ export default function renderAiAnalysis(responseData, fullText = null) {
     let currentHasChunk = null;
 
     textSegments.forEach((seg, index) => {
+      // Символ относится к выделяемой группе (желтый/красный) только если вероятность >= половины порога
       const effectiveProb = (seg.hasChunk && seg.maxProb >= (data.applied_threshold / 2)) ? seg.maxProb : -1;
       const prevEffectiveProb = (index > 0 && textSegments[index - 1].hasChunk && textSegments[index - 1].maxProb >= (data.applied_threshold / 2)) ? textSegments[index - 1].maxProb : -1;
 
-      if (effectiveProb !== prevEffectiveProb || index === 0) {
+      // Дополнительно разделяем желтую и красную зоны на разные теги span
+      let isSameZone = true;
+      if (effectiveProb !== -1 && prevEffectiveProb !== -1) {
+        const currentIsRed = effectiveProb > data.applied_threshold;
+        const prevIsRed = prevEffectiveProb > data.applied_threshold;
+        isSameZone = currentIsRed === prevIsRed;
+      }
+
+      if (effectiveProb !== prevEffectiveProb || !isSameZone || index === 0) {
         if (index > 0) textHtml += `</span>`;
 
         if (effectiveProb !== -1) {
@@ -79,14 +113,13 @@ export default function renderAiAnalysis(responseData, fullText = null) {
     if (textSegments.length > 0) textHtml += `</span>`;
 
   } else {
-    // ВАРИАНТ 2: Если fullText нет
+    // ВАРИАНТ 2: Если исходный fullText пустой, склеиваем чанки
     const sortedChunks = [...data.chunks].sort((a, b) => a.index - b.index);
     let combinedText = "";
     let charProbabilities = [];
 
     sortedChunks.forEach(chunk => {
-      const snippet = chunk.text_snippet;
-
+      const snippet = cleanSpecialChars(chunk.text_snippet);
       let overlapLength = 0;
       for (let l = Math.min(combinedText.length, snippet.length); l > 0; l--) {
         if (combinedText.endsWith(snippet.substring(0, l))) {
@@ -110,16 +143,19 @@ export default function renderAiAnalysis(responseData, fullText = null) {
       combinedText += uniquePart;
     });
 
-    let currentProb = null;
+    let currentGroup = null;
     for (let i = 0; i < combinedText.length; i++) {
-      const effectiveProb = charProbabilities[i] >= (data.applied_threshold / 2) ? charProbabilities[i] : -1;
-      const prevEffectiveProb = i > 0 ? (charProbabilities[i - 1] >= (data.applied_threshold / 2) ? charProbabilities[i - 1] : -1) : null;
+      const prob = charProbabilities[i];
+      let group = -1; // -1 значит зеленый / без выделения
+      if (prob > data.applied_threshold) group = 2; // Красный
+      else if (prob >= (data.applied_threshold / 2)) group = 1; // Желтый
 
-      if (effectiveProb !== prevEffectiveProb || i === 0) {
+      if (group !== currentGroup || i === 0) {
         if (i > 0) textHtml += `</span>`;
+        currentGroup = group;
 
-        if (effectiveProb !== -1) {
-          const styles = getColorByThreshold(effectiveProb, data.applied_threshold);
+        if (group !== -1) {
+          const styles = getColorByThreshold(prob, data.applied_threshold);
           textHtml += `<span style="${styles.bgStyle} padding-left: 2px; padding-right: 2px;">`;
         } else {
           textHtml += `<span>`;
@@ -130,47 +166,42 @@ export default function renderAiAnalysis(responseData, fullText = null) {
     if (combinedText.length > 0) textHtml += `</span>`;
   }
 
-  // Создание HTML-структуры
-  const container = document.createElement("div");
-  container.className = "container my-5 d-flex flex-column align-items-center text-center";
+  // Возвращаем HTML-строку
+  return `
+    <div class="container my-5 d-flex flex-column align-items-center text-center">
+      <style>
+        @keyframes fillCircle {
+          from { stroke-dashoffset: ${circumference}; }
+          to { stroke-dashoffset: ${strokeDashoffset}; }
+        }
+        .ai-circle-progress {
+          stroke-dasharray: ${circumference};
+          stroke-dashoffset: ${circumference};
+          animation: fillCircle 1.2s ease-out forwards;
+        }
+      </style>
 
-  container.innerHTML = `
-    <style>
-      @keyframes fillCircle {
-        from { stroke-dashoffset: ${circumference}; }
-        to { stroke-dashoffset: ${strokeDashoffset}; }
-      }
-      .ai-circle-progress {
-        stroke-dasharray: ${circumference};
-        stroke-dashoffset: ${circumference};
-        animation: fillCircle 1.2s ease-out forwards;
-      }
-    </style>
+      <!-- Круговой прогресс-бар -->
+      <div class="position-relative d-flex align-items-center justify-content-center mb-4" style="width: 140px; height: 140px;">
+        <svg width="140" height="140" viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+          <circle cx="50" cy="50" r="${radius}" fill="none" stroke="#e9ecef" stroke-width="8"/>
+          <circle class="ai-circle-progress" cx="50" cy="50" r="${radius}" fill="none" stroke="${mainColor}" stroke-width="8" stroke-linecap="round"/>
+        </svg>
+        <div class="position-absolute d-flex align-items-center justify-content-center" style="inset: 0;">
+          <span class="fs-2 fw-bold" style="color: ${mainColor}; line-height: 1;">${aiPercent}%</span>
+        </div>
+      </div>
 
-    <!-- Блок с круговым прогресс-баром светофора -->
-    <div class="position-relative d-flex align-items-center justify-content-center mb-4" style="width: 140px; height: 140px;">
-      <svg width="140" height="140" viewBox="0 0 100 100" style="transform: rotate(-90deg);">
-        <circle cx="50" cy="50" r="${radius}" fill="none" stroke="#e9ecef" stroke-width="8"/>
-        <circle class="ai-circle-progress" cx="50" cy="50" r="${radius}" fill="none" stroke="${mainColor}" stroke-width="8" stroke-linecap="round"/>
-      </svg>
-      <div class="position-absolute d-flex align-items-center justify-content-center" style="inset: 0;">
-        <span class="fs-2 fw-bold" style="color: ${mainColor}; line-height: 1;">${aiPercent}%</span>
+      <!-- Метрики -->
+      <div class="mb-4">
+        <p class="mb-1 fs-5"><strong>${tr("AI Generated:")}</strong> <span class="badge" style="background-color: ${mainColor}; color: #ffffff;">${isAiText}</span></p>
+        <p class="text-muted small"><strong>${tr("Strictness threshold:")}</strong> ${thresholdValue}</p>
+      </div>
+
+      <!-- Блок с кодом и фоновым светофором (зеленый не выделяется) -->
+      <div class="w-100 text-start mt-3" style="max-width: 700px;">
+        <pre style="background-color: #f8f9fa; padding: 1rem; margin: 0; overflow-x: auto;"><code style="font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 0.95rem; white-space: pre-wrap;">${textHtml}</code></pre>
       </div>
     </div>
-
-    <!-- Метрики под кругом -->
-    <div class="mb-4">
-      <p class="mb-1 fs-5"><strong>${tr("AI Generated:")}</strong> <span class="badge" style="background-color: ${mainColor}; color: #ffffff;">${isAiText}</span></p>
-      <p class="text-muted small"><strong>${tr("Strictness threshold:")}</strong> ${thresholdValue}</p>
-    </div>
-
-    <!-- Исходный текст без карточки -->
-    <div class="w-100 text-start lh-lg mt-3" style="max-width: 700px; white-space: pre-wrap; font-size: 1.1rem;">
-      ${textHtml}
-    </div>
   `;
-
-  return container
-
-  // document.body.appendChild(container);
 }
