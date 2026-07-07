@@ -13,7 +13,7 @@ export async function handleResponseByPath(response = {}, path = null, requestDa
             return tmplToolsTextCompare(data);
         case '/tools/text/ai-detect':
             const data2 = typeof response.json === 'function' ? await response.json() : response;
-            document.append(renderAiAnalysis(data2, requestData.text))
+            //document.append(renderAiAnalysis(data2, requestData.text))
             return renderAiAnalysis(data2, requestData.text)
         default:
             return;
