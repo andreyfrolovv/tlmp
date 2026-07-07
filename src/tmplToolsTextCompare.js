@@ -9,8 +9,6 @@ export default function tmplToolsTextCompare(data) {
     return;
   }
 
-  console.log(data);
-
   // Извлекаем нужные свойства из вложенного объекта data
   const { percentage, detected_language } = data.data;
 
@@ -86,16 +84,19 @@ export default function tmplToolsTextCompare(data) {
     </div>
   `;
 
-  // 3. Добавляем элемент на страницу
-  const targetElement = document.getElementById('app') || document.querySelector('main') || document.body;
-  targetElement.appendChild(container);
-
-  // 4. Запуск анимации заполнения
-  setTimeout(() => {
+    setTimeout(() => {
     const progressArc = container.querySelector('#speedometer-progress-arc');
     if (progressArc) {
       const finalOffset = arcLength - (arcLength * (numericPercentage / 100));
       progressArc.style.strokeDashoffset = finalOffset;
     }
   }, 50);
+
+  return container
+
+  // // 3. Добавляем элемент на страницу
+  // const targetElement = document.getElementById('app') || document.querySelector('main') || document.body;
+  // targetElement.appendChild(container);
+
+  // 4. Запуск анимации заполнения
 }

@@ -9,8 +9,8 @@ export async function handleResponseByPath(response = {}, path = null) {
     switch (path) {
         case '/tools/text/compare':
             const data = typeof response.json === 'function' ? await response.json() : response;
-            tmplToolsTextCompare(data);
-            return;
+            // console.log(tmplToolsTextCompare(data))
+            return tmplToolsTextCompare(data);
         default:
             return;
     }
