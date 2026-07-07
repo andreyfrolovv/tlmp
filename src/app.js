@@ -13,6 +13,7 @@ export async function handleResponseByPath(response = {}, path = null, requestDa
             return tmplToolsTextCompare(data);
         case '/tools/text/ai-detect':
             const data2 = typeof response.json === 'function' ? await response.json() : response;
+            document.append(renderAiAnalysis(data2, requestData.text))
             return renderAiAnalysis(data2, requestData.text)
         default:
             return;
@@ -28,7 +29,7 @@ window.tr = function(text) {
 handleResponseByPath({
   "result": true,
   "data": {
-    "ai_probability": 0.02,
+    "ai_probability": 0.80,
     "is_ai": false,
     "applied_threshold": 0.5,
     "total_chunks": 3,

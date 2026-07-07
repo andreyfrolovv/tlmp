@@ -1,30 +1,30 @@
 export default function renderAiAnalysis(responseData, fullText = null) {
   const { data } = responseData;
   const aiPercent = Math.round(data.ai_probability * 100);
-  const thresholdPercent = Math.round(data.applied_threshold * 100);
-  const isAiText = data.is_ai ? "Да" : "Нет";
+  const thresholdValue = data.applied_threshold; // Выводим как есть, без перевода в проценты
+  const isAiText = data.is_ai ? `${tr('Yes')}` : `${tr('No')}`; // Данные из JSON не оборачиваем в rt()
 
   // Функция для определения цвета на основе порога строгости
   function getColorByThreshold(probability, threshold) {
     if (probability > threshold) {
       return {
         hex: "#dc3545", // Красный
-        bgStyle: "background-color: #f8d7da; color: #000000; padding: 2px 0px; font-weight: 500; border-radius: 2px;"
+        bgStyle: "background-color: #f8d7da; padding: 2px 0px; font-weight: 500; border-radius: 2px;"
       };
     } else if (probability >= (threshold / 2)) {
       return {
         hex: "#ffc107", // Желтый
-        bgStyle: "background-color: #fff3cd; color: #000000; padding: 2px 0px; font-weight: 500; border-radius: 2px;"
+        bgStyle: "background-color: #fff3cd; padding: 2px 0px; font-weight: 500; border-radius: 2px;"
       };
     } else {
       return {
-        hex: "#198754", // Зеленый (для круга и бэджа)
-        bgStyle: "" // Для текста — НИКАК не выделяем (пустой стиль)
+        hex: "#198754", // Зеленый (для круга)
+        bgStyle: "" // Зеленую зону никак не выделяем фоном
       };
     }
   }
 
-  // Цвет для главного круга и бэджа (на основе общей вероятности)
+  // Цвет для главного круга (на основе общей вероятности)
   const mainColor = getColorByThreshold(data.ai_probability, data.applied_threshold).hex;
 
   // Настройки SVG круга
@@ -61,7 +61,6 @@ export default function renderAiAnalysis(responseData, fullText = null) {
     let currentHasChunk = null;
 
     textSegments.forEach((seg, index) => {
-      // Определяем эффективную вероятность (если нет чанка или он в зеленой зоне — считаем -1 для группировки обычного текста)
       const effectiveProb = (seg.hasChunk && seg.maxProb >= (data.applied_threshold / 2)) ? seg.maxProb : -1;
       const prevEffectiveProb = (index > 0 && textSegments[index - 1].hasChunk && textSegments[index - 1].maxProb >= (data.applied_threshold / 2)) ? textSegments[index - 1].maxProb : -1;
 
@@ -113,7 +112,6 @@ export default function renderAiAnalysis(responseData, fullText = null) {
 
     let currentProb = null;
     for (let i = 0; i < combinedText.length; i++) {
-      // Если вероятность ниже половины порога, приравниваем к "без подсветки"
       const effectiveProb = charProbabilities[i] >= (data.applied_threshold / 2) ? charProbabilities[i] : -1;
       const prevEffectiveProb = i > 0 ? (charProbabilities[i - 1] >= (data.applied_threshold / 2) ? charProbabilities[i - 1] : -1) : null;
 
@@ -161,19 +159,16 @@ export default function renderAiAnalysis(responseData, fullText = null) {
     </div>
 
     <!-- Метрики под кругом -->
-    <div class="mb-4 text-dark">
-      <p class="mb-1 fs-5"><strong>Сгенерировано ИИ:</strong> <span class="badge" style="background-color: ${mainColor}; color: #ffffff;">${isAiText}</span></p>
-      <p class="text-muted small"><strong>Порог строгости:</strong> ${thresholdPercent}%</p>
+    <div class="mb-4">
+      <p class="mb-1 fs-5"><strong>${tr("AI Generated:")}</strong> <span class="badge" style="background-color: ${mainColor}; color: #ffffff;">${isAiText}</span></p>
+      <p class="text-muted small"><strong>${tr("Strictness threshold:")}</strong> ${thresholdValue}</p>
     </div>
 
-    <!-- Исходный текст с выборочной фоновой подсветкой чанков -->
-    <div class="card w-100 border-light-subtle shadow-sm" style="max-width: 700px;">
-      <div class="card-header bg-light text-start fw-semibold text-secondary">Исходный текст анализа</div>
-      <div class="card-body text-start lh-lg text-dark" style="white-space: pre-wrap; font-size: 1.1rem;">${textHtml}</div>
+    <!-- Исходный текст без карточки -->
+    <div class="w-100 text-start lh-lg mt-3" style="max-width: 700px; white-space: pre-wrap; font-size: 1.1rem;">
+      ${textHtml}
     </div>
   `;
 
-  return container
-
-  //document.body.appendChild(container);
+  document.body.appendChild(container);
 }
