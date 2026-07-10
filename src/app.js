@@ -1,5 +1,6 @@
 import tmplToolsTextCompare from './tmplToolsTextCompare.js';
 import renderAiAnalysis from './tmplAiDetect.js'
+import tmplForSeo from './tmplForSeo.js'
 
 export async function handleResponseByPath(params = {
     response: {},
@@ -23,6 +24,12 @@ export async function handleResponseByPath(params = {
             // 3. Возвращаем результат
             return renderAiAnalysis(data2, params.requestPayload.text);
         }
+        case '/tools/text/':
+            let container = document.querySelector('#app');
+            let data3 = typeof params.response.json === 'function' ? await params.response.json() : params.response;
+            container.appendChild(tmplForSeo(data3))
+            return;
+            //return tmplForSeo(data3)
         default:
             return;
     }
@@ -35,73 +42,5 @@ window.tr = function (text) {
 
 // Тестовый вызов
 handleResponseByPath({
-    response: {
-        result: true,
-        data: {
-            ai_probability: 0.6158138513565063,
-            is_ai: true,
-            applied_threshold: 0.1,
-            total_chunks: 1,
-            chunks: [
-                {
-                    index: 0,
-                    token_length: 497,
-                    ai_probability: 0,
-                    is_ai: true,
-                    text_snippet: "привет"
-                },
-                {
-                    index: 0,
-                    token_length: 497,
-                    ai_probability: 0.1,
-                    is_ai: true,
-                    text_snippet: "андрей"
-                },
-                {
-                    index: 0,
-                    token_length: 497,
-                    ai_probability: 0.9,
-                    is_ai: true,
-                    text_snippet: "пока"
-                }
-            ]
-        }
-    },
-    path: "/tools/text/ai-detect",
-    requestPayload: {
-        text: "привет андрей пока" ,
-        threshold: 0.1,
-        max_len: 768
-    }
-})
-//   "result": true,
-//   "data": {
-//     "ai_probability": 0.80,
-//     "is_ai": false,
-//     "applied_threshold": 0.5,
-//     "total_chunks": 3,
-//     "chunks": [
-//               {
-//         "index": 0,
-//         "token_length": 598,
-//         "ai_probability": 0.0063933138735592365,
-//         "is_ai": false,
-//         "text_snippet": "1840 году дал мощный толчок развитию: монарх велел озеленять береговые дюны и благоустраивать спуски к морю.1945–1947 годы — в ходе Восточно-Прусской операции город практически не пострадал от бомбежек. В 1947 году он получил новое имя — Светлогорск.🏛️ Главные достопримечательностиСветлогорск разделен на две части: нижнюю (вокруг озера Тихого) и верхнюю (высокое плато на дюне у моря). Город признан первым в России участником движения Cittaslow («Медленный город») — здесь запрещены шумные производства, ограничена скорость машин и культивируется размеренный образ жизни.Архитектурные визитные карточкиВодонапорная башня и здание водолечебницы — сооружение в стиле романтизма начала XX века. Башня высотой 25 метров с выразительным куполом и деревянной надстройкой служит главным символом города.Органный зал «Макаров» — возведен в стенах полуразрушенной католической капеллы «Santa Maria Stella Mare». Известен своей феноменальной акустикой и уникальным органом ручной работы.Озеро Тихое — историческое сердце старого Раушена. Тихое место для лодочных прогулок, окруженное променадом и гигантскими вековыми липами (одной из которых более 450 лет).Виллы начала XX века — прогуливаясь по улицам Октябрьской, Гагарина и"
-//       },
-//       {
-//         "index": 1,
-//         "token_length": 588,
-//         "ai_probability": 0.26,
-//         "is_ai": true,
-//         "text_snippet": "Светлогорск — уникальный город-курорт федерального значения в Калининградской области, расположенный на высоком песчаном берегу Балтийского моря в 30 километрах от Калининграда. Бывший немецкий курорт Раушен гармонично сочетает в себе прусское архитектурное наследие, целебный морской климат и философию «медленного города».Курорт буквально утопает в вековых хвойных лесах, из-за чего воздух здесь пропитан смолистым ароматом сосен и морским бризом.📜 История: от языческого поселения до элитного курортаИстория Светлогорска насчитывает более семи веков:1258 год — первое упоминание поселения Руземотер («край погребов»), где жили пруссы-рыболовы.Орденский период — рыцари Тевтонского ордена перегородили местный ручей, вырыли Мельничный пруд (ныне озеро Тихое) и построили самую крупную на ландшафте мельницу.Имя «Раушен» — название закрепилось за поселением из-за созвучия с немецким глаголом rauschen («шуметь», «шелестеть»), что отсылало к шуму морского прибоя.XIX век — официальное открытие курорта. В 1820 году здесь начали строить первые гостевые виллы. Визит короля Фридриха Вильгельма IV в 1840 году дал мощный толчок развитию: монарх велел озеленять береговые дюны и"
-//       },
-//               {
-//         "index": 2,
-//         "token_length": 586,
-//         "ai_probability": 0.51,
-//         "is_ai": true,
-//         "text_snippet": "начала XX века — прогуливаясь по улицам Октябрьской, Гагарина и Ленина, можно увидеть фахверковые дома, усадьбы в стиле модерн с башенками и флюгерами.Побережье и променадНовый Променад — широкая пешеходная зона вдоль Балтийского моря с велодорожками, скамейками и зонами отдыха.Лифт «Панорама VV» — футуристический панорамный подъемник, связывающий центральную площадь города с набережной и открывающий вид на морские просторы.Канатная дорога — отреставрированный ретро-подъемник с маленькими желтыми кабинками, который медленно спускает туристов к пляжу сквозь кроны деревьев.Солнечные часы «Зодиак» — уникальные мозаичные часы на набережной, занесенные в Книгу рекордов Гиннесса за точность и художественную ценность.Скульптуры Германа Брахерта — на улицах и набережной установлены знаменитые работы мастера: изящная «Нимфа» и «Несущая воду» (в Лиственничном парке установлена точная копия).Культурная жизньТеатр эстрады «Янтарь-холл» — современный многофункциональный комплекс, где проходят крупные музыкальные фестивали, концерты и КВН. Внутри также расположен филиал калининградского Музея Мирового океана."
-//       },
-//     ]
-//   }
-// }, "/tools/text/ai-detect"
+    path: '/tools/text/',
+    response: {"result":true,"data":{"analyzer_version":"1.0.0","url":"https://2026.aisearch.ru","basic_seo":{"title":"AiSearch RU - Все ай в одном месте | AiSearch RU - нейросеть онлайн","title_length":67,"meta_description":"Откройте для себя и сравните лучшие инструменты искусственного интеллекта на AiSearch RU. Найдите все решения искусственного интеллекта в одном месте, чтобы ускорить рабочий процесс и повысить производительность.","meta_description_length":212,"meta_robots":[],"canonical_url":"https://v3.aisearch.ru/","viewport":"width=device-width,initial-scale=1","charset":"utf-8","html_lang":"ru","favicon_url":"https://2026.aisearch.ru/static/assets/icons/logo.png?v2"},"headings":{"all_headings":{"h1":["С ИИ[учитьсяписатьтворитьнаходитьработатьвсёучиться]проще"],"h2":["Больше не надо искать — надо просто создать"],"h5":["История чатов","Настройки чата:","Подтвердить удаление"]},"h1_tags_content":["С ИИ[учитьсяписатьтворитьнаходитьработатьвсёучиться]проще"],"h1_count":1,"total_headings_count":5},"content_quality":{"content_length_chars":1511,"text_to_html_ratio_percent":3.76,"keyword_density_top_10_with_bigrams":{"api":11.54,"api openapi":7.69,"json":7.69,"llm":7.69,"llm api":7.69,"openapi":7.69,"openapi json":7.69,"01783601736629":3.85,"2023":3.85,"2023 2026":3.85},"flesch_reading_ease_score":92.4,"paragraph_count":3,"has_videos_embedded":false,"has_tables_present":false},"images":{"total_images_found":7,"images_with_alt_attribute":7,"images_missing_alt_attribute":0,"images_with_empty_alt_text":1,"images_with_long_alt_text":0,"decorative_images_correctly_marked":0},"links":{"total_links_found":49,"internal_links_count":40,"external_links_count":9,"nofollow_internal_links_count":0,"nofollow_external_links_count":0,"anchor_text_distribution_percent":{"keyword_like_or_short_phrase":83.0,"descriptive_long_phrase":17.0}},"social_media_tags":{"open_graph_tags":{"og:title":"AiSearch RU - Все ай в одном месте","og:description":"Откройте для себя и сравните лучшие инструменты искусственного интеллекта на AiSearch RU. Найдите все решения искусственного интеллекта в одном месте, чтобы ускорить рабочий процесс и повысить производительность.","og:type":"website","og:image":"https://v3.aisearch.ru/static/assets/img/og-cover.png","og:url":"https://v3.aisearch.ru/"},"twitter_card_tags":{}},"structured_data":{"json_ld_data_blocks":[],"microdata_items":[],"rdfa_items":[],"detected_schema_org_types":[]},"seo_health":{"score":88,"total_issues_found":6,"critical_issues_count":0,"error_issues_count":0,"warning_issues_count":6},"issues":[{"level":2,"message":"Title Too Long","element_type":"Title","details":"Length 67 (optimal 30-60).","recommendation":"Shorten title."},{"level":2,"message":"Meta Description Too Long","element_type":"Meta Description","details":"Length 212 (optimal 70-160).","recommendation":"Shorten description."},{"level":0,"message":"Meta Robots Not Specified","element_type":"Meta Robots","details":"Defaults to 'index, follow'.","recommendation":"Add if specific directives needed."},{"level":2,"message":"Canonical URL Mismatch","element_type":"Canonical URL","details":"Page URL ('https://2026.aisearch.ru') differs from canonical ('https://v3.aisearch.ru/').","recommendation":"Ensure canonical points to the correct preferred version if this is not intentional."},{"level":1,"message":"Viewport Configured for Mobile","element_type":"Viewport","details":"Viewport appears correctly configured.","recommendation":null},{"level":1,"message":"UTF-8 Charset Declared","element_type":"Charset","details":"Page uses UTF-8 character encoding.","recommendation":null},{"level":1,"message":"HTML Language Declared","element_type":"HTML Language","details":"HTML language declared as 'ru'.","recommendation":null},{"level":1,"message":"Favicon Link/Default Resolved","element_type":"Favicon","details":"A favicon URL was resolved: https://2026.aisearch.ru/static/assets/icons/logo.png?v2","recommendation":null},{"level":1,"message":"Single H1 Tag Present","element_type":"H1 Tag","details":"Page has a single H1 tag, which is generally the recommended practice for the main page heading.","recommendation":null},{"level":2,"message":"Skipped Heading Level","element_type":"Headings Hierarchy","details":"Heading level H3 appears to be missing between H2 and H5.","recommendation":"Maintain a logical heading hierarchy without skipping levels (e.g., use H2 after H1, H3 after H2, etc.)."},{"level":1,"message":"Sufficient Content Length","element_type":"Content Quality","details":"Main content length (1511 chars) meets or exceeds the minimum recommendation.","recommendation":null},{"level":2,"message":"Low Text-to-HTML Ratio","element_type":"Content Quality","details":"Text-to-HTML ratio is 3.76%. This may indicate excessive code/scripts relative to textual content.","recommendation":"Review page structure for unnecessary code, inline styles/scripts, or large comment blocks. Ensure there is substantial textual content relevant to the page topic."},{"level":1,"message":"Good Readability Score","element_type":"Content Readability","details":"Flesch Reading Ease score is 92.4, indicating content is relatively easy to read for the average user.","recommendation":null},{"level":2,"message":"Empty Alt Text for Potentially Non-Decorative Image","element_type":"Image Alt Text","details":"Image 'https://mc.yandex.ru/watch/109912184...' has an empty alt attribute (alt=\"\"). This implies it's decorative.","recommendation":"If the image is informative, provide descriptive alt text. If it's purely decorative and conveys no information, alt=\"\" is appropriate; consider also adding role='presentation' for clarity."},{"level":0,"message":"Some Images Have Empty Alt Text","element_type":"Image Alt Text","details":"1 image(s) have empty alt text and are not explicitly marked decorative. Review them.","recommendation":null},{"level":1,"message":"Essential Open Graph Tags Present","element_type":"Open Graph","details":"Essential Open Graph tags (title, type, image, url) are present and have content.","recommendation":null},{"level":0,"message":"No Twitter Card Tags Found","element_type":"Twitter Card","details":"No Twitter Card meta tags were found on the page.","recommendation":"Consider adding Twitter Card tags for optimized display and engagement when your content is shared on Twitter."},{"level":0,"message":"No Common Structured Data Detected","element_type":"Structured Data","details":"No common structured data formats (JSON-LD, Microdata, RDFa) were found on the page.","recommendation":"Consider adding structured data (Schema.org markup, typically via JSON-LD) to help search engines understand your content better and potentially enable rich results in SERPs."}],"recommendations":["Ensure canonical points to the correct preferred version if this is not intentional.","If the image is informative, provide descriptive alt text. If it's purely decorative and conveys no information, alt=\"\" is appropriate; consider also adding role='presentation' for clarity.","Maintain a logical heading hierarchy without skipping levels (e.g., use H2 after H1, H3 after H2, etc.).","Review page structure for unnecessary code, inline styles/scripts, or large comment blocks. Ensure there is substantial textual content relevant to the page topic.","Shorten description.","Shorten title."],"html_validation":[{"type":"error","lastLine":31,"lastColumn":9,"firstColumn":1,"message":"A “script” element with a “type” attribute whose value is “speculationrules” must have valid JSON content.","extract":"s);\n    }\n\u003c/script\u003e\u003clink ","hiliteStart":10,"hiliteLength":9},{"type":"error","lastLine":92,"lastColumn":24,"firstColumn":20,"message":"Bad start tag in “div” in “noscript” in “head”.","extract":"\u003cnoscript\u003e\u003cdiv\u003e\u003cimg s","hiliteStart":10,"hiliteLength":5},{"type":"error","lastLine":92,"lastColumn":132,"firstColumn":122,"message":"Stray end tag “noscript”.","extract":"alt\u003e\u003c/div\u003e\u003c/noscript\u003e\u003cbody ","hiliteStart":10,"hiliteLength":11},{"type":"error","lastLine":92,"lastColumn":176,"firstColumn":133,"message":"Start tag “body” seen but an element of the same type was already open.","extract":"/noscript\u003e\u003cbody class=\"d-flex flex-column min-vh-100\"\u003e\u003cdiv i","hiliteStart":10,"hiliteLength":44},{"type":"error","lastLine":92,"lastColumn":176,"firstColumn":133,"subType":"fatal","message":"Cannot recover after last error. Any further errors will be ignored.","extract":"/noscript\u003e\u003cbody class=\"d-flex flex-column min-vh-100\"\u003e\u003cdiv i","hiliteStart":10,"hiliteLength":44}]}}})
