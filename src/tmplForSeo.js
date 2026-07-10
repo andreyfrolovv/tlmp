@@ -236,10 +236,11 @@ export default function tmplForSeo(data) {
     let i_issues = 0;
     issues.sort((a, b) => b.level - a.level);
 
-    issues.forEach(issue => {
-        if (issue.message || issue.element_type || issue.details || issue.recommendation) {
-            let issuesElement = mainDiv.querySelector('#issues');
-            issuesElement.innerHTML += `
+    if (issues) {
+        issues.forEach(issue => {
+            if (issue.message || issue.element_type || issue.details || issue.recommendation) {
+                let issuesElement = mainDiv.querySelector('#issues');
+                issuesElement.innerHTML += `
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${i_issues}" aria-expanded="false" aria-controls="collapse_${i_issues}">
                     <span><strong>${tr('Level')}:${issue.level}</strong> ${issue.message}</span>
@@ -253,23 +254,27 @@ export default function tmplForSeo(data) {
                 </div>
             </div>
         `;
-            i_issues++;
-        }
-    });
+                i_issues++;
+            }
+        });
+    }
 
-    recommendations.forEach(recommendation => {
-        if (recommendation) {
-            mainDiv.querySelector('#recommendations').innerHTML += `
+    if (recommendations) {
+        recommendations.forEach(recommendation => {
+            if (recommendation) {
+                mainDiv.querySelector('#recommendations').innerHTML += `
             <span class="small text-muted d-block fw-bold mb-1">${recommendation}</span>
         `;
-        }
-    });
+            }
+        });
+    }
 
     let i_html_validation = 0;
 
-    html_validation.forEach(html_error => {
-        if (html_error.type || html_error.lastLine || html_error.lastColumn || html_error.firstColumn || html_error.message || html_error.extract || html_error.hiliteStart || html_error.hiliteLength) {
-            mainDiv.querySelector('#html_validation').innerHTML += `
+    if (html_validation) {
+        html_validation.forEach(html_error => {
+            if (html_error.type || html_error.lastLine || html_error.lastColumn || html_error.firstColumn || html_error.message || html_error.extract || html_error.hiliteStart || html_error.hiliteLength) {
+                mainDiv.querySelector('#html_validation').innerHTML += `
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_${i_html_validation}" aria-expanded="false" aria-controls="collapse_${i_html_validation}">
                     <span><strong>${tr('type')}:${html_error.type}</strong></span>
@@ -287,12 +292,14 @@ export default function tmplForSeo(data) {
                 </div>
             </div>
         `;
-            i_html_validation++;
-        }
-    });
+                i_html_validation++;
+            }
+        });
+    }
 
-    if (basic_seo.title || basic_seo.title_length || basic_seo.meta_description || basic_seo.meta_description_length || basic_seo.meta_robots || basic_seo.canonical_url || basic_seo.viewport || basic_seo.charset || basic_seo.html_lang || basic_seo.favicon_url) {
-        mainDiv.querySelector('#basic_seo').innerHTML = `
+    if (basic_seo) {
+        if (basic_seo.title || basic_seo.title_length || basic_seo.meta_description || basic_seo.meta_description_length || basic_seo.meta_robots || basic_seo.canonical_url || basic_seo.viewport || basic_seo.charset || basic_seo.html_lang || basic_seo.favicon_url) {
+            mainDiv.querySelector('#basic_seo').innerHTML = `
         ${basic_seo.title ? `<span class="small text-muted d-block fw-bold mb-1">${tr("title")}: ${basic_seo.title}</span>` : ''}
         ${basic_seo.title_length ? `<span class="small text-muted d-block fw-bold mb-1">${tr("title_length")}: ${basic_seo.title_length}</span>` : ''}
         ${basic_seo.meta_description ? `<span class="small text-muted d-block fw-bold mb-1">${tr("meta_description")}: ${basic_seo.meta_description}</span>` : ''}
@@ -304,15 +311,19 @@ export default function tmplForSeo(data) {
         ${basic_seo.html_lang ? `<span class="small text-muted d-block fw-bold mb-1">${tr("html_lang")}: ${basic_seo.html_lang}</span>` : ''}
         ${basic_seo.favicon_url ? `<span class="small text-muted d-block fw-bold mb-1">${tr("favicon_url")}: ${basic_seo.favicon_url}</span>` : ''}
     `;
+        }
     }
 
-    Object.entries(headings).forEach(([key, values]) => {
+    if (headings) {
+            Object.entries(headings).forEach(([key, values]) => {
         if (values && values.length > 0) {
             mainDiv.querySelector('#headings').innerHTML += `<strong>${key}:</strong> ${values.join(', ')}<br>`;
         }
     });
+    }
 
-    Object.entries(content_quality).forEach(([key, values]) => {
+    if (content_quality) {
+            Object.entries(content_quality).forEach(([key, values]) => {
         if (values) {
             if (key === 'keyword_density_top_10_with_bigrams' && Object.keys(values).length > 0) {
                 const accordionContainer = document.createElement('div');
@@ -350,14 +361,18 @@ export default function tmplForSeo(data) {
             }
         }
     });
+    }
 
-    Object.entries(images).forEach(([key, values]) => {
+    if (images) {
+            Object.entries(images).forEach(([key, values]) => {
         if (values) {
             mainDiv.querySelector('#images').innerHTML += `<strong>${tr(key)}:</strong> ${values}<br>`;
         }
     });
+    }
 
-    Object.entries(links).forEach(([key, values]) => {
+    if (links) {
+            Object.entries(links).forEach(([key, values]) => {
         if (values) {
             if (key === 'anchor_text_distribution_percent' && Object.keys(values).length > 0) {
                 const accordionContainer = document.createElement('div');
@@ -393,8 +408,10 @@ export default function tmplForSeo(data) {
             }
         }
     });
+    }
 
-    Object.entries(social_media_tags).forEach(([key, values]) => {
+    if (social_media_tags) {
+            Object.entries(social_media_tags).forEach(([key, values]) => {
         if (values) {
             if (Array.isArray(values) && values.length > 0) {
                 const accordionContainer = document.createElement('div');
@@ -459,8 +476,10 @@ export default function tmplForSeo(data) {
             }
         }
     });
+    }
 
-    Object.entries(structured_data).forEach(([key, values]) => {
+    if (structured_data) {
+            Object.entries(structured_data).forEach(([key, values]) => {
         if (values) {
             if (Array.isArray(values) && values.length > 0) {
                 const accordionContainer = document.createElement('div');
@@ -523,6 +542,7 @@ export default function tmplForSeo(data) {
             }
         }
     });
+    }
 
     setTimeout(() => {
         const progressArc = document.querySelector('#speedometer-progress-arc');
