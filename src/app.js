@@ -59,6 +59,13 @@ handleResponseByPath({
                     "end": 2,
                     "confidence": 0,
                     "text": "Привет, как дела, у меня норм."
+                },
+                                {
+                    "speaker": "",
+                    "start": 0,
+                    "end": 2,
+                    "confidence": 0,
+                    "text": "Привет, как дела, у меня норм."
                 }
             ]
         }
